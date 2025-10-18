@@ -14,7 +14,6 @@ class Calculator:
     def __init__(self):
         self._current_value = Decimal('0')
         self._history_manager = HistoryManager()
-        # Save the initial state for a complete undo history
         initial_command = ArithmeticCalculation(Decimal('0'), Decimal('0'), lambda a, b: a)
         self._save_state(initial_command)
         app_logger.info("Calculator initialized and initial state saved.")
@@ -26,13 +25,9 @@ class Calculator:
 
     def execute_command(self, command: ArithmeticCalculation) -> Decimal:
         """Executes a command, updates the value, and saves the new state."""
-        # Perform the calculation to get the new value
         result = command.perform() 
         self._current_value = result
-        
-        # Save the new state after a successful execution
         self._save_state(command)
-        
         app_logger.info(f"Command executed. New value: {self._current_value}")
         return self._current_value
 
@@ -41,7 +36,6 @@ class Calculator:
         memento = self._history_manager.undo()
         if memento is None:
             raise InsufficientHistoryError("Cannot undo: No more history available.")
-        
         self._current_value = memento.get_state_value()
         app_logger.info(f"Undo successful. Restored value: {self._current_value}")
 
@@ -50,7 +44,6 @@ class Calculator:
         memento = self._history_manager.redo()
         if memento is None:
             raise InsufficientHistoryError("Cannot redo: No more states to restore.")
-            
         self._current_value = memento.get_state_value()
         app_logger.info(f"Redo successful. Restored value: {self._current_value}")
 
@@ -66,7 +59,18 @@ class Calculator:
         """Resets the calculator and clears the history manager."""
         self._current_value = Decimal('0')
         self._history_manager.clear()
-        # Save the initial "0" state again
         initial_command = ArithmeticCalculation(Decimal('0'), Decimal('0'), lambda a, b: a)
         self._save_state(initial_command)
         app_logger.info("Calculator history cleared and reset to initial state.")
+
+    
+    def load_calculation(self, calculation: ArithmeticCalculation):
+        """
+        Loads a single, pre-computed calculation into the calculator's
+        state and history. This is used when loading from a file.
+        """
+        # Set the current value to the result of this loaded calculation
+        self._current_value = calculation.result
+        # Save this state in the history manager
+        self._save_state(calculation)
+        app_logger.info(f"Loaded calculation from history: {calculation.result}")
