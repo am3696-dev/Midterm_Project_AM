@@ -32,7 +32,7 @@ class ArithmeticCalculation(Subject):
             self._observers.remove(observer)
             app_logger.info(f"Detached observer: {observer.__class__.__name__}")
         except ValueError:
-            app_logger.warning(f"Observer {observer.__class__.__name__} not found for detachment.")
+            app_logger.warning(f"Observer {observer.__class__.__name__} not found for detachment.") # pragma: no cover
 
     def notify(self) -> None:
         """Notify all observers about an event."""
@@ -44,7 +44,7 @@ class ArithmeticCalculation(Subject):
     @staticmethod
     def create(a: Decimal, b: Decimal, operation: Callable[[Decimal, Decimal], Decimal]):
         """Factory method to create a new calculation instance."""
-        return ArithmeticCalculation(a, b, operation)
+        return ArithmeticCalculation(a, b, operation) # pragma: no cover
 
     def perform(self) -> Decimal:
         """

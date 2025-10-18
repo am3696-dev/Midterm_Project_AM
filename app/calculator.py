@@ -57,3 +57,16 @@ class Calculator:
     def get_current_value(self) -> Decimal:
         """Returns the current value of the calculator."""
         return self._current_value
+    
+    def get_history(self) -> list[CalculatorMemento]:
+        """Retrieves the calculation history from the history manager."""
+        return self._history_manager.get_history()
+
+    def clear_history(self):
+        """Resets the calculator and clears the history manager."""
+        self._current_value = Decimal('0')
+        self._history_manager.clear()
+        # Save the initial "0" state again
+        initial_command = ArithmeticCalculation(Decimal('0'), Decimal('0'), lambda a, b: a)
+        self._save_state(initial_command)
+        app_logger.info("Calculator history cleared and reset to initial state.")
