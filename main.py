@@ -1,9 +1,10 @@
 # main.py
 
 import sys
-print("DEBUG: main.py script started.")
-import os
 from decimal import Decimal
+import os
+import pandas as pd
+
 from app.calculator import Calculator
 from app.calculation import ArithmeticCalculation
 from app.input_validators import InputValidator
@@ -11,6 +12,7 @@ from app.exceptions import ValidationError, OperationError, InsufficientHistoryE
 from app.operations import OperationFactory
 from app.logger import setup_logging, app_logger, LoggingObserver
 from app.calculator_config import CalculatorConfig
+from app.history import AutoSaveObserver 
 
 # 1. CRITICAL STEP: Call the logger setup first
 setup_logging()
@@ -18,6 +20,11 @@ setup_logging()
 # 2. Initialize core services
 CALCULATOR = Calculator()
 LOGGING_OBSERVER = LoggingObserver()
+
+AUTOSAVE_OBSERVER = None
+if CalculatorConfig.AUTO_SAVE:
+    AUTOSAVE_OBSERVER = AutoSaveObserver()
+    app_logger.info("AutoSaveObserver initialized.")
 
 class Cli:
     """Command-Line Interface (REPL) for the Advanced Calculator Application."""
@@ -27,7 +34,6 @@ class Cli:
         app_logger.info("CLI initialized.")
 
     def _setup_commands(self) -> dict:
-        """Defines the mapping of user commands to handler methods."""
         binary_ops = [
             'add', 'subtract', 'multiply', 'divide', 'power', 'root',
             'modulus', 'int_divide', 'percent', 'abs_diff'
@@ -42,16 +48,19 @@ class Cli:
         return command_map
 
     def _handle_binary_operation(self, command: str, operands: list):
-        """Handler for all arithmetic operations."""
         if len(operands) != 2:
-            print("Error: Arithmetic commands require exactly two operands (e.g., add 10 5).")
+            print("Error: Arithmetic commands require exactly two operands (e.g., add 1 1).")
             return
         try:
             a = InputValidator.validate_operand(operands[0])
             b = InputValidator.validate_operand(operands[1])
             operation_func = OperationFactory.get_operation(command)
             calculation = ArithmeticCalculation(a, b, operation_func)
+            
             calculation.attach(LOGGING_OBSERVER)
+            if AUTOSAVE_OBSERVER:
+                calculation.attach(AUTOSAVE_OBSERVER)
+                
             self.calculator.execute_command(calculation)
             print(f"Result: {self.calculator.get_current_value()}")
         except (ValidationError, OperationError, Exception) as e:
@@ -73,11 +82,21 @@ class Cli:
             print(f"Error: {e}")
 
     def _handle_history(self, *args):
-        print("History feature TBD.")
+        history = self.calculator.get_history()
+        if len(history) <= 1: 
+            print("No calculations in history yet.")
+            return
+
+        print("\n--- Calculation History ---")
+        for memento in history[1:]:
+            calc = memento.get_last_command()
+            print(f"{calc.operation.__name__.title()}({calc.a}, {calc.b}) = {calc.result}")
+        print("--------------------------")
 
     def _handle_clear(self, *args):
-        print("Clear feature TBD.")
-
+        self.calculator.clear_history()
+        print("In-memory history cleared. Calculator reset to 0.")
+        
     def _handle_save(self, *args):
         print("Feature TBD: Manual history save.")
 
@@ -105,7 +124,8 @@ class Cli:
         print("==============================================\n")
         while True:
             try:
-                user_input = input(f"[{str(self.calculator.get_current_value())}] > ").strip().lower()
+                user_input = input("Enter Command > ").strip().lower()
+                
                 if not user_input: continue
                 parts = user_input.split()
                 command, operands = parts[0], parts[1:]
@@ -121,7 +141,6 @@ class Cli:
                 print(f"An unexpected error occurred. Please check the logs.")
 
 if __name__ == '__main__':
-    print("DEBUG: main.py __name__ block reached.") 
     try:
         cli = Cli(CALCULATOR)
         cli.start()
