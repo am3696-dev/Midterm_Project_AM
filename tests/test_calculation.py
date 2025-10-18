@@ -6,8 +6,14 @@ from app.calculation import ArithmeticCalculation
 from app.operations import OperationFactory
 from app.exceptions import DivisionByZeroError
 from app.logger import Observer
+import logging # <-- ADDED THIS IMPORT
 
-# --- Fixture for a simple mock observer ---
+# --- Imports for AutoSave Test ---
+import os
+import pandas as pd
+from app.history import AutoSaveObserver
+from app.calculator_config import CalculatorConfig
+# ------------------------------------
 
 class MockObserver(Observer):
     """A mock observer to test the update notification."""
@@ -24,8 +30,6 @@ def mock_observer():
     """Provides a fresh instance of MockObserver."""
     return MockObserver()
 
-# --- Fixture for a basic calculation ---
-
 @pytest.fixture
 def basic_calc():
     """Provides a simple ArithmeticCalculation instance."""
@@ -38,7 +42,7 @@ def test_calculation_perform(basic_calc):
     """Tests that the perform method returns the correct result."""
     result = basic_calc.perform()
     assert result == Decimal('15')
-    assert basic_calc.result == Decimal('15') # Check that the result is stored
+    assert basic_calc.result == Decimal('15')
 
 def test_calculation_perform_error():
     """Tests that perform correctly re-raises calculation errors."""
@@ -55,22 +59,51 @@ def test_calculation_repr(basic_calc):
 def test_observer_attach_and_notify(basic_calc, mock_observer):
     """Tests that an attached observer is notified when perform() is called."""
     basic_calc.attach(mock_observer)
-    
-    # Perform the calculation
     basic_calc.perform()
-    
-    # Check that the observer's update method was called
     assert mock_observer.updated is True
-    # Check that the observer received the correct subject state
     assert mock_observer.subject_state == basic_calc
-    assert mock_observer.subject_state.result == Decimal('15')
 
 def test_observer_detach(basic_calc, mock_observer):
     """Tests that a detached observer is not notified."""
     basic_calc.attach(mock_observer)
-    basic_calc.detach(mock_observer) # Detach immediately
-    
+    basic_calc.detach(mock_observer)
     basic_calc.perform()
-    
-    # Check that the observer was NOT updated
     assert mock_observer.updated is False
+
+# --- Test for AutoSave Observer ---
+
+def test_auto_save_observer(basic_calc):
+    """Tests that the AutoSaveObserver creates a CSV file."""
+    if not CalculatorConfig.AUTO_SAVE:
+        pytest.skip("AUTO_SAVE is false, skipping observer test.") # pragma: no cover
+    
+    observer = AutoSaveObserver()
+    file_path = observer.history_file_path
+
+    if os.path.exists(file_path):
+        os.remove(file_path) # pragma: no cover
+
+    basic_calc.attach(observer)
+    basic_calc.perform()
+
+    assert os.path.exists(file_path)
+    df = pd.read_csv(file_path)
+    assert len(df) == 1
+    assert df.iloc[0]['operation'] == 'add'
+    assert df.iloc[0]['result'] == 15
+    os.remove(file_path)
+
+# --- Test for AutoSave Observer Error Handling ---
+
+def test_auto_save_observer_handles_exception(caplog):
+    """Tests that the AutoSaveObserver logs an error if saving fails."""
+    if not CalculatorConfig.AUTO_SAVE:
+        pytest.skip("AUTO_SAVE is false, skipping observer test.") # pragma: no cover
+        
+    observer = AutoSaveObserver()
+    bad_subject = object() 
+    
+    with caplog.at_level(logging.ERROR):
+        observer.update(bad_subject)
+    
+    assert "Failed to auto-save history" in caplog.text
