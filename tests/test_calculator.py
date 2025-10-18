@@ -7,6 +7,11 @@ from app.calculation import ArithmeticCalculation
 from app.operations import OperationFactory
 from app.exceptions import InsufficientHistoryError
 
+import pandas as pd
+import os
+from app.calculator_config import CalculatorConfig
+from app.logger import Observer # For observer tests
+
 # Helper function to create commands for tests
 def create_command(op_name, a_val, b_val):
     """Creates an ArithmeticCalculation command for testing."""
@@ -56,56 +61,60 @@ def test_redo_without_undo(clean_calculator):
     with pytest.raises(InsufficientHistoryError):
         clean_calculator.redo()
 
-# --- THIS TEST IS NOW CORRECTED ---
 def test_new_action_clears_redo_stack(clean_calculator):
     """Tests that performing a new calculation clears the redo stack."""
     clean_calculator.execute_command(create_command('add', '10', '0'))      # Value becomes 10
     clean_calculator.execute_command(create_command('add', '5', '0'))       # Value becomes 5
     clean_calculator.undo()                                                 # Value reverts to 10
-
-    # Perform a new action
     clean_calculator.execute_command(create_command('multiply', '4', '3'))  # New value is 12
-
-    # Redo should fail because the redo stack was cleared
     with pytest.raises(InsufficientHistoryError):
         clean_calculator.redo()
-    
-    # Assert the final value is correct based on the last independent calculation
     assert clean_calculator.get_current_value() == Decimal('12')
-
-    # --- Append these new tests to the end of tests/test_calculator.py ---
-
-from app.logger import Observer
 
 # --- Tests for Calculation and Observer Pattern ---
 
 def test_calculation_repr():
     """Tests the __repr__ method of ArithmeticCalculation for correct string representation."""
     command = create_command('add', '10', '5')
-    # The __name__ of the operation function is 'add', so repr should reflect that.
     assert repr(command) == "Calculation(10, 5, Operation=Add)"
 
 def test_observer_detach():
     """Tests that an observer can be successfully detached from a calculation."""
     command = create_command('add', '1', '1')
     
-    # Create a simple mock observer
     class MockObserver(Observer):
         def update(self, subject) -> None:
             pass # pragma: no cover
             
     observer = MockObserver()
     command.attach(observer)
-    assert len(command._observers) == 1 # Verify observer was added
-
+    assert len(command._observers) == 1
     command.detach(observer)
-    assert len(command._observers) == 0 # Verify observer was removed
+    assert len(command._observers) == 0
 
 def test_calculation_perform_error():
     """Tests that the perform method in a calculation correctly re-raises exceptions."""
-    # Create a command that will fail (division by zero)
     command = create_command('divide', '10', '0')
-    
-    # Ensure that performing the command raises the expected error
-    with pytest.raises(Exception): # Catching a general Exception is fine here
+    with pytest.raises(Exception):
         command.perform()
+
+# --- NEW TEST FOR LOAD COMMAND ---
+
+def test_calculator_load_calculation(clean_calculator):
+    """Tests that the load_calculation method correctly updates state and history."""
+    
+    # Create a sample calculation object as if it were loaded
+    op_func = OperationFactory.get_operation('add')
+    calc = ArithmeticCalculation(Decimal('100'), Decimal('50'), op_func)
+    calc.result = Decimal('150') # Manually set the result
+    
+    # Load it into the calculator
+    clean_calculator.load_calculation(calc)
+    
+    # Check that the current value is updated
+    assert clean_calculator.get_current_value() == Decimal('150')
+    
+    # Check that it was added to the history
+    history = clean_calculator.get_history()
+    assert len(history) == 2 # (Initial '0' state + our loaded state)
+    assert history[-1].get_last_command().result == Decimal('150')
