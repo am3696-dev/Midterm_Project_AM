@@ -65,55 +65,39 @@ CALCULATOR_DEFAULT_ENCODING=utf-8
 
 ## Usage Guide
 
-Run the application from the project root directory:
+Run the application from the project root directory
 
 ```bash
 python main.py
-
 You will see the REPL prompt:
-```bash
+
 Enter Command >
 
-Okay, let's add the Usage Guide.
+### Arithmetic Operations  
+**Usage:** `<command> <number1> <number2>`  
 
-Usage Guide
-Copy the code block below and append it to your README.md file, right after the "Configuration Setup" section.
+**Available Commands:**  
+`add`, `subtract`, `multiply`, `divide`, `power`, `root`, `modulus`, `int_divide`, `percent`, `abs_diff`  
 
-Markdown
+**Example:**  
+```bash
+add 10 5
 
 ---
 
-## Usage Guide
+## Testing Instructions
 
-Run the application from the project root directory:
+Unit tests are written using `pytest`. To run the tests and check coverage:
 
-```bash
-python main.py
-You will see the REPL prompt:
+1.  Make sure your virtual environment is active.
+2.  Run the following command from the project root directory:
 
-Enter Command >
-Supported Commands:
+    ```bash
+    pytest --cov=app
+    ```
+    This will run all tests and display a coverage report.
 
-Arithmetic Operations: (Usage: <command> <number1> <number2>)
-
-add, subtract, multiply, divide, power, root, modulus, int_divide, percent, abs_diff
-
-Example: add 10 5
-
-Utility Commands: (Usage: <command>)
-
-history: Display the list of calculations performed.
-
-clear: Clear the in-memory calculation history.
-
-undo: Revert the last calculation.
-
-redo: Restore an undone calculation.
-
-load: Load calculation history from history/calculations.csv.
-
-save: Manually save history.
-
-help: Display this list of commands.
-
-exit or quit: Exit the application.
+    To enforce the 90% coverage requirement (as done in the CI pipeline), run:
+    ```bash
+    pytest --cov=app --cov-fail-under=90
+    ```
