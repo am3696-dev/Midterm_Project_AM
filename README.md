@@ -42,14 +42,21 @@ The application uses a `.env` file in the project root directory to manage confi
 # .env
 
 # --- Directory Settings ---
-CALCULATOR_LOG_DIR=logs          # Directory for log files
-CALCULATOR_HISTORY_DIR=history   # Directory for history CSV file
+CALCULATOR_LOG_DIR=logs
+# Directory for log files
+CALCULATOR_HISTORY_DIR=history 
+# Directory for history CSV file
 
 # --- History Settings ---
-# CALCULATOR_MAX_HISTORY_SIZE=100 # (Currently not implemented) Max history entries
-CALCULATOR_AUTO_SAVE=true        # Set to 'true' to auto-save history to CSV, 'false' to disable
+CALCULATOR_MAX_HISTORY_SIZE=100
+# Max history entries
+CALCULATOR_AUTO_SAVE=true 
+# Set to 'true' to auto-save history to CSV, 'false' to disable
 
 # --- Calculation Settings ---
-# CALCULATOR_PRECISION=10        # (Currently not implemented) Decimal places for results
-# CALCULATOR_MAX_INPUT_VALUE=1000000000 # (Currently not implemented) Max allowed input
-CALCULATOR_DEFAULT_ENCODING=utf-8 # Default encoding for file operations
+CALCULATOR_PRECISION=10        
+#Decimal places for results
+CALCULATOR_MAX_INPUT_VALUE=1000000000 
+# Max allowed input
+CALCULATOR_DEFAULT_ENCODING=utf-8 
+# Default encoding for file operations
