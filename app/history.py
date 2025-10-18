@@ -2,6 +2,7 @@
 
 import os
 import pandas as pd
+from datetime import datetime # Import the datetime module
 from app.calculator_memento import CalculatorMemento
 from app.logger import app_logger, Observer
 from app.calculator_config import CalculatorConfig
@@ -55,7 +56,7 @@ class HistoryManager:
         self._redo_mementos.clear()
         app_logger.info("HistoryManager cleared.")
 
-# --- NEW OBSERVER CLASS ---
+# --- AutoSaveObserver Class ---
 
 class AutoSaveObserver(Observer):
     """
@@ -78,8 +79,12 @@ class AutoSaveObserver(Observer):
         'subject' is an instance of ArithmeticCalculation.
         """
         try:
+            # Get the current time and format it as a string
+            timestamp = datetime.now().isoformat()
+
             # Create a DataFrame for the new calculation
             new_data = {
+                'timestamp': [timestamp], 
                 'operation': [subject.operation.__name__],
                 'operand_a': [subject.a],
                 'operand_b': [subject.b],
@@ -87,12 +92,12 @@ class AutoSaveObserver(Observer):
             }
             df = pd.DataFrame(new_data)
             
-            # Check if file exists to append or write new
+            # Re-order columns to match the rubric
+            df = df[['timestamp', 'operation', 'operand_a', 'operand_b', 'result']]
+            
             if os.path.exists(self.history_file_path):
-                # Append without header
                 df.to_csv(self.history_file_path, mode='a', header=False, index=False)
             else:
-                # Write new file with header
                 df.to_csv(self.history_file_path, mode='w', header=True, index=False)
                 
             app_logger.info(f"Auto-saved calculation to {self.history_file_path}")
