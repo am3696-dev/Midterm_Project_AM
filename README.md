@@ -60,3 +60,60 @@ CALCULATOR_MAX_INPUT_VALUE=1000000000
 # Max allowed input
 CALCULATOR_DEFAULT_ENCODING=utf-8 
 # Default encoding for file operations
+
+---
+
+## Usage Guide
+
+Run the application from the project root directory:
+
+```bash
+python main.py
+
+You will see the REPL prompt:
+```bash
+Enter Command >
+
+Okay, let's add the Usage Guide.
+
+Usage Guide
+Copy the code block below and append it to your README.md file, right after the "Configuration Setup" section.
+
+Markdown
+
+---
+
+## Usage Guide
+
+Run the application from the project root directory:
+
+```bash
+python main.py
+You will see the REPL prompt:
+
+Enter Command >
+Supported Commands:
+
+Arithmetic Operations: (Usage: <command> <number1> <number2>)
+
+add, subtract, multiply, divide, power, root, modulus, int_divide, percent, abs_diff
+
+Example: add 10 5
+
+Utility Commands: (Usage: <command>)
+
+history: Display the list of calculations performed.
+
+clear: Clear the in-memory calculation history.
+
+undo: Revert the last calculation.
+
+redo: Restore an undone calculation.
+
+load: Load calculation history from history/calculations.csv.
+
+save: Manually save history.
+
+help: Display this list of commands.
+
+exit or quit: Exit the application.
