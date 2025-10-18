@@ -26,5 +26,10 @@ jobs:
         pip install pytest pytest-cov
 
     - name: Run tests and check coverage
+      # --- THESE ARE THE NEW LINES ---
+      # This sets the environment variable for this step only
+      env:
+        CALCULATOR_AUTO_SAVE: 'true'
+      # ------------------------------
       run: |
         pytest --cov=app --cov-fail-under=90
