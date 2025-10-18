@@ -100,9 +100,51 @@ class Cli:
     def _handle_save(self, *args):
         print("Feature TBD: Manual history save.")
 
+    # --- LOAD COMMAND IMPLEMENTED ---
     def _handle_load(self, *args):
-        print("Feature TBD: History load.")
+        """Loads calculation history from the CSV file."""
+        file_path = os.path.join(CalculatorConfig.HISTORY_DIR, 'calculations.csv')
+        
+        if not os.path.exists(file_path):
+            print(f"Error: History file not found at {file_path}")
+            app_logger.warning(f"History file not found: {file_path}")
+            return
 
+        try:
+            df = pd.read_csv(file_path)
+            if df.empty:
+                print("History file is empty.")
+                app_logger.info("History file is empty. No history loaded.")
+                return
+            
+            # Clear the current in-memory history to start fresh
+            self.calculator.clear_history()
+            
+            print("Loading history...")
+            for index, row in df.iterrows():
+                # Re-create the calculation object from the row
+                op_func = OperationFactory.get_operation(row['operation'])
+                # Use str() to safely convert to Decimal, even if pandas reads as float
+                a = Decimal(str(row['operand_a']))
+                b = Decimal(str(row['operand_b']))
+                result = Decimal(str(row['result']))
+                
+                calc = ArithmeticCalculation(a, b, op_func)
+                calc.result = result # Set the pre-calculated result
+                
+                # Load this calculation into the calculator's state
+                self.calculator.load_calculation(calc)
+            
+            print(f"History successfully loaded. Current value is {self.calculator.get_current_value()}")
+            app_logger.info("Calculation history successfully loaded from CSV.")
+
+        except pd.errors.EmptyDataError:
+            print("History file is empty. No history to load.")
+            app_logger.warning("History file is empty. No history loaded.")
+        except Exception as e:
+            print(f"Error loading history: {e}")
+            app_logger.error(f"Failed to load history from CSV: {e}", exc_info=True)
+            
     def _handle_help(self, *args):
         print("\n--- Available Commands ---")
         binary_ops = [k for k, v in self.commands.items() if v == self._handle_binary_operation]
@@ -112,7 +154,7 @@ class Cli:
         print("\n--------------------------")
 
     def _handle_exit(self, *args):
-        print("Exiting calculator. Goodbye!")
+        print("Exiting Artan's calculator. Goodbye!")
         sys.exit(0)
 
     def start(self):
