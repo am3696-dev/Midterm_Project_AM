@@ -15,28 +15,30 @@ Configuration is managed through a `.env` file, and the application includes rob
 
 ## Installation Instructions
 
-1.  **Clone the repository:**
+1. **Clone the repository:**
     ```bash
     git clone git@github.com:am3696-dev/Midterm_Project_AM.git
     cd Midterm_Project_AM
     ```
 
-2.  **Create and activate a virtual environment:**
+2. **Create and activate a virtual environment:**
     ```bash
     python3 -m venv venv
     source venv/bin/activate
     ```
     *(On Windows, use `venv\Scripts\activate`)*
 
-3.  **Install the required dependencies:**
+3. **Install the required dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
+
 ---
 
 ## Configuration Setup
 
-The application uses a `.env` file in the project root directory to manage configuration settings. Create a file named `.env` and add the following variables:
+The application uses a `.env` file in the project root directory to manage configuration settings.  
+Create a file named `.env` and add the following variables:
 
 ```env
 # .env
@@ -55,33 +57,51 @@ CALCULATOR_AUTO_SAVE=true
 
 # --- Calculation Settings ---
 CALCULATOR_PRECISION=10        
-#Decimal places for results
+# Decimal places for results
 CALCULATOR_MAX_INPUT_VALUE=1000000000 
 # Max allowed input
 CALCULATOR_DEFAULT_ENCODING=utf-8 
 # Default encoding for file operations
+```
 
 ---
 
 ## Usage Guide
 
-Run the application from the project root directory
+To run the application, navigate to the project root directory in your terminal (make sure your virtual environment is activated) and execute the main script:
 
 ```bash
 python main.py
-You will see the REPL prompt:
-
+```
+You will be greeted with the REPL (Read-Eval-Print Loop) prompt:
 Enter Command >
 
-### Arithmetic Operations  
-**Usage:** `<command> <number1> <number2>`  
+### Supported Commands
 
-**Available Commands:**  
-`add`, `subtract`, `multiply`, `divide`, `power`, `root`, `modulus`, `int_divide`, `percent`, `abs_diff`  
+#### Arithmetic Operations:
+**Format:** (Usage: `<command> <number1> <number2>`)
 
-**Example:**  
+**Available Commands:** `add`, `subtract`, `multiply`, `divide`, `power`, `root`, `modulus`, `int_divide`, `percent`, `abs_diff`
+
+**Example:**
 ```bash
 add 10 5
+```
+
+### Utility Commands:
+**Usage:** `<command>`
+
+| Command | Description |
+|---------|-------------|
+| `history` | Displays the list of calculations performed in the current session. |
+| `clear` | Clears the in-memory calculation history and resets the calculator value to 0. |
+| `undo` | Reverts the last calculation, restoring the previous value. |
+| `redo` | Restores a calculation that was previously undone. |
+| `load` | Loads the calculation history from `history/calculations.csv`, replacing the current in-memory history. |
+| `save` | *(Currently Not Implemented)* Intended for manual saving. |
+| `help` | Displays the list of available commands and their usage. |
+| `exit` / `quit` | Exits the calculator application gracefully. |
+
 
 ---
 
@@ -101,3 +121,18 @@ Unit tests are written using `pytest`. To run the tests and check coverage:
     ```bash
     pytest --cov=app --cov-fail-under=90
     ```
+---
+
+## CI/CD Information
+
+This project uses **GitHub Actions** for Continuous Integration (CI). The workflow is defined in the `.github/workflows/python-app.yml` file.
+
+**Purpose:** On every push or pull request to the `main` branch, the workflow automatically runs all the project's unit tests using `pytest` and checks that the test coverage remains at 90% or higher. This helps ensure that new code changes do not break existing functionality and maintain high code quality standards.
+
+The workflow performs the following steps:
+1.  Checks out the latest code.
+2.  Sets up the specified Python environment.
+3.  Installs all project dependencies from `requirements.txt`.
+4.  Runs the tests using `pytest --cov=app --cov-fail-under=90`.
+
+If any test fails or if the coverage drops below 90%, the workflow run will fail, alerting developers to the issue.
