@@ -5,3 +5,5 @@ venv/
 .env
 .coverage
 .vscode/
+logs/
+history_data/
