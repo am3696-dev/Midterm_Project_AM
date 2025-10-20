@@ -163,7 +163,7 @@ class Cli:
         print("\n--------------------------")
 
     def _handle_exit(self, *args):
-        print("Exiting calculator. Goodbye!")
+        print("Exiting Artan's calculator. Goodbye!")
         sys.exit(0)
 
     def start(self):
